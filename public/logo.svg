@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100" height="100">
+  <!-- 背景圆形 -->
+  <circle cx="100" cy="100" r="90" fill="#1A365D"/>
+  
+  <!-- 内部圆环 - 代表石油化工行业 -->
+  <circle cx="100" cy="100" r="70" fill="none" stroke="#F47B20" stroke-width="8"/>
+  
+  <!-- 字母 J 和 B (京博缩写) -->
+  <path d="M70 60 v50 h20 a20 20 0 0 0 0 -40" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M120 60 v50 c0 15 15 20 25 20 s25 -5 25 -20 v-10 h-30" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- 安全符号 - 六边形代表化工行业的分子结构 -->
+  <polygon points="100,140 115,150 115,170 100,180 85,170 85,150" fill="#F47B20" stroke="#FFFFFF" stroke-width="2"/>
+</svg> 

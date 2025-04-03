@@ -1,12 +1,11 @@
 <template>
-  <div class="system-setting">
+  <div class="post-manage">
     <el-card class="box-card">
       <template #header>
         <div class="card-header">
-          <h2>系统设置</h2>
+          <h2>岗位管理</h2>
         </div>
       </template>
-      
       <div class="developing">
         <el-empty description="功能开发中...">
           <template #image>
@@ -23,7 +22,7 @@ import { Loading } from '@element-plus/icons-vue'
 </script>
 
 <style scoped>
-.system-setting {
+.post-manage {
   padding: 20px;
 }
 

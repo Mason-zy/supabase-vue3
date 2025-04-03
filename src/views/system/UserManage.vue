@@ -1,24 +1,44 @@
 <template>
   <div class="user-manage">
-    <h1>用户管理</h1>
-    <div class="placeholder">开发中...</div>
+    <el-card class="box-card">
+      <template #header>
+        <div class="card-header">
+          <h2>用户管理</h2>
+        </div>
+      </template>
+      <div class="developing">
+        <el-empty description="功能开发中...">
+          <template #image>
+            <el-icon :size="60" style="color: #909399;"><Loading /></el-icon>
+          </template>
+        </el-empty>
+      </div>
+    </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
-// 开发中...
+import { Loading } from '@element-plus/icons-vue'
 </script>
 
-<style scoped lang="scss">
+<style scoped>
 .user-manage {
-  .placeholder {
-    padding: 40px;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    font-size: 18px;
-    color: #718096;
-  }
+  padding: 20px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #1A365D;
+}
+
+.developing {
+  padding: 40px 0;
 }
 </style> 

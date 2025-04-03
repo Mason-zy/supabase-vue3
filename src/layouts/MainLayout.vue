@@ -56,6 +56,8 @@
             </template>
             <el-menu-item index="/system/users">用户管理</el-menu-item>
             <el-menu-item index="/system/roles">角色管理</el-menu-item>
+            <el-menu-item index="/system/departments">部门管理</el-menu-item>
+            <el-menu-item index="/system/posts">岗位管理</el-menu-item>
             <el-menu-item index="/system/settings">系统设置</el-menu-item>
           </el-sub-menu>
         </el-menu>
@@ -83,16 +85,18 @@
         </div>
         
         <div class="header-right">
-          <el-dropdown>
+          <el-dropdown @command="handleCommand">
             <div class="user-info">
-              <el-avatar :size="32" class="user-avatar">管</el-avatar>
-              <span class="username">管理员</span>
+              <el-avatar :size="32" class="user-avatar">
+                {{ userAvatarText }}
+              </el-avatar>
+              <span class="username">{{ userName }}</span>
             </div>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item>个人信息</el-dropdown-item>
-                <el-dropdown-item>修改密码</el-dropdown-item>
-                <el-dropdown-item divided>退出登录</el-dropdown-item>
+                <el-dropdown-item command="profile">个人信息</el-dropdown-item>
+                <el-dropdown-item command="password">修改密码</el-dropdown-item>
+                <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -115,7 +119,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/system/auth'
+import { ElMessageBox } from 'element-plus'
 import { 
   HomeFilled, 
   Odometer, 
@@ -127,28 +133,57 @@ import {
   Menu
 } from '@element-plus/icons-vue'
 
+// 路由与认证
+const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
+
+// 用户信息
+const userName = computed(() => {
+  return authStore.userProfile?.nickname || 
+         authStore.userProfile?.email?.split('@')[0] || 
+         authStore.user?.email?.split('@')[0] || 
+         '用户'
+})
+
+const userAvatarText = computed(() => {
+  if (authStore.userProfile?.nickname) {
+    return authStore.userProfile.nickname.substring(0, 1)
+  }
+  if (authStore.userProfile?.email) {
+    return authStore.userProfile.email.substring(0, 1).toUpperCase()
+  }
+  if (authStore.user?.email) {
+    return authStore.user.email.substring(0, 1).toUpperCase()
+  }
+  return '用'
+})
+
 // 侧边栏折叠状态
 const isCollapsed = ref(false)
 
-// 获取当前路由
-const route = useRoute()
-
 // 计算当前路由名称（中文）
 const routeNameMap: Record<string, string> = {
-  'dashboard': '仪表盘',
-  'indicators': '指标管理',
-  'accidents': '事故管理',
-  'reports': '报表中心',
-  'users': '用户管理',
-  'roles': '角色管理',
-  'settings': '系统设置'
+  'Dashboard': '仪表盘',
+  'Indicators': '指标管理',
+  'Accidents': '事故管理',
+  'Reports': '报表中心',
+  'Users': '用户管理',
+  'Roles': '角色管理',
+  'Settings': '系统设置',
+  'UserProfile': '个人信息',
+  'ChangePassword': '修改密码',
+  'Departments': '部门管理',
+  'Posts': '岗位管理'
 }
 
 // 路由父级名称映射
 const routeParentMap: Record<string, string> = {
-  'users': '系统管理',
-  'roles': '系统管理',
-  'settings': '系统管理'
+  'Users': '系统管理',
+  'Roles': '系统管理',
+  'Settings': '系统管理',
+  'Departments': '系统管理',
+  'Posts': '系统管理'
 }
 
 const currentRoute = computed(() => route)
@@ -183,6 +218,34 @@ const activeMenu = computed(() => {
 // 切换侧边栏折叠状态
 const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value
+}
+
+// 处理下拉菜单命令
+const handleCommand = async (command: string) => {
+  if (command === 'logout') {
+    try {
+      await ElMessageBox.confirm(
+        '确定要退出系统吗？',
+        '提示',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+        }
+      )
+      
+      const result = await authStore.logout()
+      if (result.success) {
+        router.push({ name: 'Login' })
+      }
+    } catch {
+      // 用户取消操作
+    }
+  } else if (command === 'profile') {
+    router.push({ name: 'UserProfile' })
+  } else if (command === 'password') {
+    router.push({ name: 'ChangePassword' })
+  }
 }
 </script>
 

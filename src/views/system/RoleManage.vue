@@ -1,48 +1,52 @@
 <template>
   <div class="role-manage">
-    <div class="page-header">
-      <h2>角色管理</h2>
-      <el-button type="primary" size="small">
-        <el-icon><Plus /></el-icon>新增角色
-      </el-button>
-    </div>
-    
-    <div class="role-table-container">
-      <el-table :data="rolesList" border style="width: 100%">
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="name" label="角色名称" width="150" />
-        <el-table-column prop="description" label="角色描述" />
-        <el-table-column prop="createdAt" label="创建时间" width="180" />
-        <el-table-column prop="updatedAt" label="更新时间" width="180" />
-        <el-table-column label="操作" width="200" fixed="right">
-          <template #default="scope">
-            <el-button size="small" type="primary" text>编辑</el-button>
-            <el-button size="small" type="primary" text @click="showPermissions(scope.row)">权限</el-button>
-            <el-button size="small" type="danger" text>删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </div>
-    
-    <el-dialog v-model="permissionsDialogVisible" title="角色权限" width="50%">
-      <div class="permissions-container">
-        <el-tree
-          :data="permissionsData"
-          show-checkbox
-          node-key="id"
-          :default-checked-keys="selectedPermissions"
-          :props="{ label: 'name' }"
-        />
-      </div>
-      <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="permissionsDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="savePermissions">
-            确认
+    <el-card class="box-card">
+      <template #header>
+        <div class="card-header">
+          <h2>角色管理</h2>
+          <el-button type="primary" size="small">
+            <el-icon><Plus /></el-icon>新增角色
           </el-button>
-        </span>
+        </div>
       </template>
-    </el-dialog>
+      
+      <div class="role-table-container">
+        <el-table :data="rolesList" border style="width: 100%">
+          <el-table-column prop="id" label="ID" width="80" />
+          <el-table-column prop="name" label="角色名称" width="150" />
+          <el-table-column prop="description" label="角色描述" />
+          <el-table-column prop="createdAt" label="创建时间" width="180" />
+          <el-table-column prop="updatedAt" label="更新时间" width="180" />
+          <el-table-column label="操作" width="200" fixed="right">
+            <template #default="scope">
+              <el-button size="small" type="primary" text>编辑</el-button>
+              <el-button size="small" type="primary" text @click="showPermissions(scope.row)">权限</el-button>
+              <el-button size="small" type="danger" text>删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+      
+      <el-dialog v-model="permissionsDialogVisible" title="角色权限" width="50%">
+        <div class="permissions-container">
+          <el-tree
+            :data="permissionsData"
+            show-checkbox
+            node-key="id"
+            :default-checked-keys="selectedPermissions"
+            :props="{ label: 'name' }"
+          />
+        </div>
+        <template #footer>
+          <span class="dialog-footer">
+            <el-button @click="permissionsDialogVisible = false">取消</el-button>
+            <el-button type="primary" @click="savePermissions">
+              确认
+            </el-button>
+          </span>
+        </template>
+      </el-dialog>
+    </el-card>
   </div>
 </template>
 
@@ -149,35 +153,39 @@ const savePermissions = () => {
 }
 </script>
 
-<style scoped lang="scss">
+<style scoped>
 .role-manage {
-  .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    
-    h2 {
-      margin: 0;
-      font-size: 18px;
-      color: #1A365D;
-    }
-  }
-  
-  .role-table-container {
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    margin-bottom: 20px;
-  }
-  
-  .permissions-container {
-    height: 400px;
-    overflow-y: auto;
-    padding: 10px;
-    border: 1px solid #E2E8F0;
-    border-radius: 4px;
-  }
+  padding: 20px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #1A365D;
+}
+
+.role-table-container {
+  margin-top: 20px;
+}
+
+.permissions-container {
+  height: 400px;
+  overflow-y: auto;
+  padding: 10px;
+  border: 1px solid #E2E8F0;
+  border-radius: 4px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
 }
 </style> 

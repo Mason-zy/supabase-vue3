@@ -1,0 +1,53 @@
+让我们查看一下`get_current_user_info`函数涉及的数据表。根据返回的字段，这个函数应该涉及以下几个表：
+
+Ran tool
+让我们查看一下`get_current_user_info`函数的定义：
+
+Ran tool
+根据查询结果，`get_current_user_info`函数从以下表中获取数据：
+
+1. **auth.users** 表（Supabase 内置认证表）
+   - id
+   - email
+   - last_sign_in_at
+
+2. **public.user_profiles** 表（用户个人资料表）
+   - nickname（昵称）
+   - mobile（手机号）
+   - avatar（头像）
+   - gender（性别）
+   - status（状态）
+   - dept_id（部门ID）
+
+3. **public.departments** 表（部门表）
+   - dept_id（部门ID）
+   - dept_name（部门名称）
+   - dept_code（部门代码）
+
+4. **public.posts** 表（岗位表）
+   - post_name（岗位名称，通过 user_posts 关联表获取）
+
+5. **public.roles** 表（角色表）
+   - role_name（角色名称，通过 user_roles 关联表获取）
+
+关联表：
+- **public.user_posts**：用户-岗位关联表
+- **public.user_roles**：用户-角色关联表
+
+函数使用了多个JOIN操作：
+1. 与 user_profiles 表内连接（JOIN）
+2. 与 departments 表左连接（LEFT JOIN）
+3. 与 user_posts 和 posts 表左连接
+4. 与 user_roles 和 roles 表左连接
+
+最后使用 GROUP BY 子句和 STRING_AGG 函数将多个岗位名称和角色名称合并为逗号分隔的字符串。
+
+这个函数的递归问题可能出现在RLS策略中，建议检查：
+1. departments 表的RLS策略
+2. roles 表的RLS策略
+3. user_roles 表的RLS策略
+
+要解决递归问题，可以考虑：
+1. 简化RLS策略，避免在策略中查询用户角色
+2. 使用缓存机制，避免重复查询
+3. 将函数设置为SECURITY DEFINER，绕过RLS策略
