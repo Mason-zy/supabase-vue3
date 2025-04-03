@@ -36,6 +36,8 @@ npm run build
 # 预览生产构建
 npm run preview
 ```
+# 更新 database.ts
+supabase gen types typescript --linked > src/types/database.ts
 
 ## 项目结构
 

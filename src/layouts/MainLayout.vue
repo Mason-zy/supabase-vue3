@@ -186,7 +186,8 @@ const routeParentMap: Record<string, string> = {
   'Posts': '系统管理'
 }
 
-const currentRoute = computed(() => route)
+// @ts-ignore - currentRoute用于以后的扩展功能
+const currentRoute = ref(router.currentRoute.value)
 const isRootRoute = computed(() => route.path === '/')
 
 const currentRouteName = computed(() => {
