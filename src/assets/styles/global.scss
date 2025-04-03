@@ -1,0 +1,99 @@
+@use 'variables' as vars;
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  font-family: vars.$font-family-base;
+  font-size: vars.$font-size-base;
+  color: vars.$primary-color;
+  background-color: #F7FAFC;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: bold;
+  line-height: 1.5;
+}
+
+h1 {
+  font-size: 24px;
+}
+
+h2 {
+  font-size: vars.$font-size-title;
+}
+
+h3 {
+  font-size: vars.$font-size-subtitle;
+}
+
+// 按钮样式
+.btn {
+  border-radius: vars.$border-radius;
+  padding: 8px 16px;
+  font-size: vars.$font-size-base;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: scale(0.98);
+  }
+  
+  &.btn-primary {
+    background-color: vars.$primary-color;
+    color: white;
+    border: none;
+  }
+  
+  &.btn-secondary {
+    background-color: vars.$light-blue;
+    color: white;
+    border: none;
+  }
+  
+  &.btn-success {
+    background-color: vars.$success-color;
+    color: white;
+    border: none;
+  }
+  
+  &.btn-danger {
+    background-color: vars.$danger-color;
+    color: white;
+    border: none;
+  }
+}
+
+// 卡片样式
+.card {
+  background-color: white;
+  border-radius: vars.$card-border-radius;
+  box-shadow: vars.$box-shadow;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+// 表格样式
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  
+  th {
+    background-color: #EDF2F7;
+    text-align: left;
+    padding: 12px 16px;
+  }
+  
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid vars.$grey-color;
+  }
+  
+  tr:nth-child(even) {
+    background-color: #F7FAFC;
+  }
+} 

@@ -1,0 +1,82 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+project-root/
+├── public/                      # 静态资源
+│   ├── favicon.ico              # 网站图标
+│   └── logo.png                 # 公司logo
+├── src/                         # 源代码
+│   ├── assets/                  # 资源文件
+│   │   ├── images/              # 图片资源
+│   │   └── styles/              # 样式文件
+│   │       ├── variables.scss   # SCSS变量
+│   │       └── global.scss      # 全局样式
+│   ├── layouts/                 # 布局组件
+│   │   ├── MainLayout.vue       # 主布局容器
+│   │   └── BlankLayout.vue      # 空白布局(登录页用)
+│   ├── views/                   # 页面视图（每个功能一个页面）
+│   │   ├── Dashboard.vue        # 首页/仪表盘
+│   │   ├── indicators/          # 指标管理模块
+│   │   │   └── IndicatorManage.vue  # 指标管理（包含增删改查）
+│   │   ├── accidents/           # 事故管理模块
+│   │   │   └── AccidentManage.vue   # 事故管理（包含增删改查）
+│   │   ├── reports/             # 报表模块
+│   │   │   └── ReportManage.vue     # 报表管理（包含创建、查看）
+│   │   └── system/              # 系统管理模块
+│   │       ├── UserManage.vue       # 用户管理
+│   │       ├── RoleManage.vue       # 角色管理
+│   │       └── SystemSetting.vue    # 系统设置
+│   ├── services/                # 服务层（统一处理数据交互）
+│   │   ├── supabase/            # Supabase服务
+│   │   │   ├── client.ts        # Supabase客户端配置
+│   │   │   ├── auth.ts          # 认证服务
+│   │   │   └── storage.ts       # 文件存储服务
+│   │   ├── indicators/          # 指标服务
+│   │   │   └── index.ts         # 指标数据操作
+│   │   ├── accidents/           # 事故服务
+│   │   │   └── index.ts         # 事故数据操作
+│   │   ├── reports/             # 报表服务
+│   │   │   └── index.ts         # 报表数据操作
+│   │   ├── system/              # 系统服务
+│   │   │   ├── users.ts         # 用户数据操作
+│   │   │   └── roles.ts         # 角色数据操作
+│   │   └── hr/                  # HR系统集成
+│   │       └── index.ts         # HR数据集成服务
+│   ├── stores/                  # Pinia状态管理
+│   │   ├── index.ts             # 状态管理入口
+│   │   ├── indicators/          # 指标状态
+│   │   │   └── index.ts         # 指标状态管理
+│   │   ├── accidents/           # 事故状态
+│   │   │   └── index.ts         # 事故状态管理
+│   │   ├── reports/             # 报表状态
+│   │   │   └── index.ts         # 报表状态管理
+│   │   └── system/              # 系统状态
+│   │       ├── auth.ts          # 认证状态
+│   │       ├── users.ts         # 用户状态
+│   │       └── roles.ts         # 角色状态
+│   ├── utils/                   # 工具函数
+│   │   ├── formatters.ts        # 格式化工具
+│   │   └── calculations.ts      # CCPS计算工具
+│   ├── types/                   # TypeScript类型
+│   │   ├── index.ts             # 类型导出入口
+│   │   ├── database.ts          # 数据库表类型（Supabase生成）
+│   │   ├── enums.ts             # 枚举类型定义
+│   │   └── interfaces/          # 接口类型定义
+│   │       ├── common.ts        # 通用接口
+│   │       ├── indicator.ts     # 指标接口
+│   │       ├── accident.ts      # 事故接口
+│   │       ├── report.ts        # 报表接口
+│   │       └── user.ts          # 用户接口
+│   ├── router/                  # 路由配置
+│   │   ├── index.ts             # 路由入口
+│   │   └── routes.ts            # 路由定义
+│   ├── App.vue                  # 根组件
+│   └── main.ts                  # 入口文件
+├── doc/                         # 文档
+│   ├── 技术方案.md               # 技术方案文档
+│   └── 项目构建历史.md           # 项目构建历史
+├── vite.config.ts               # Vite配置
+├── package.json                 # 项目依赖
+└── README.md                    # 项目说明

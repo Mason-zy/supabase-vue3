@@ -1,0 +1,31 @@
+{
+  "name": "jingbo-safety-system",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.1",
+    "@supabase/supabase-js": "^2.39.6",
+    "@types/node": "^22.13.17",
+    "@vueuse/core": "^10.7.2",
+    "chart.js": "^4.4.1",
+    "element-plus": "^2.5.5",
+    "pinia": "^2.1.7",
+    "vue": "^3.5.13",
+    "vue-chartjs": "^5.3.0",
+    "vue-router": "^4.2.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/tsconfig": "^0.7.0",
+    "sass": "^1.70.0",
+    "typescript": "~5.7.2",
+    "vite": "^6.2.0",
+    "vue-tsc": "^2.2.4"
+  }
+}
