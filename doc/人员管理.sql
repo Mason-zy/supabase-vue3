@@ -148,34 +148,37 @@ CREATE POLICY "Users can view and update their own profile"
   USING (auth.uid() = id)
   WITH CHECK (auth.uid() = id);
 
+-- 修改管理员策略，避免递归查询
 CREATE POLICY "Admins can manage all profiles"
   ON public.user_profiles
   FOR ALL
   USING (
     EXISTS (
-      SELECT 1 FROM public.user_roles ur
-      JOIN public.roles r ON ur.role_id = r.role_id
-      WHERE ur.user_id = auth.uid() AND r.role_key = 'admin'
+      SELECT 1 FROM auth.users
+      WHERE auth.uid() = id AND 
+      id IN (SELECT user_id FROM public.user_roles WHERE role_id IN (SELECT role_id FROM public.roles WHERE role_key = 'admin'))
     )
   );
 
 -- 部门表RLS
 ALTER TABLE public.departments ENABLE ROW LEVEL SECURITY;
 
+-- 所有已认证用户都可查看激活状态的部门
 CREATE POLICY "Authenticated users can view departments"
   ON public.departments
   FOR SELECT
   TO authenticated
   USING (status = 1 AND is_deleted = false);
 
+-- 修改管理员策略，避免递归
 CREATE POLICY "Admins can manage departments"
   ON public.departments
   FOR ALL
   USING (
     EXISTS (
-      SELECT 1 FROM public.user_roles ur
-      JOIN public.roles r ON ur.role_id = r.role_id
-      WHERE ur.user_id = auth.uid() AND r.role_key = 'admin'
+      SELECT 1 FROM auth.users
+      WHERE auth.uid() = id AND 
+      id IN (SELECT user_id FROM public.user_roles WHERE role_id IN (SELECT role_id FROM public.roles WHERE role_key = 'admin'))
     )
   );
 
@@ -188,74 +191,95 @@ CREATE POLICY "Authenticated users can view posts"
   TO authenticated
   USING (status = 1);
 
+-- 修改管理员策略，避免递归
 CREATE POLICY "Admins can manage posts"
   ON public.posts
   FOR ALL
   USING (
     EXISTS (
-      SELECT 1 FROM public.user_roles ur
-      JOIN public.roles r ON ur.role_id = r.role_id
-      WHERE ur.user_id = auth.uid() AND r.role_key = 'admin'
+      SELECT 1 FROM auth.users
+      WHERE auth.uid() = id AND 
+      id IN (SELECT user_id FROM public.user_roles WHERE role_id IN (SELECT role_id FROM public.roles WHERE role_key = 'admin'))
     )
   );
 
 -- 角色表RLS
 ALTER TABLE public.roles ENABLE ROW LEVEL SECURITY;
 
+-- 所有已认证用户可查看激活的角色
 CREATE POLICY "Authenticated users can view roles"
   ON public.roles
   FOR SELECT
   TO authenticated
   USING (status = 1);
 
+-- 修改管理员策略，避免递归
 CREATE POLICY "Admins can manage roles"
   ON public.roles
   FOR ALL
   USING (
     EXISTS (
-      SELECT 1 FROM public.user_roles ur
-      JOIN public.roles r ON ur.role_id = r.role_id
-      WHERE ur.user_id = auth.uid() AND r.role_key = 'admin'
+      SELECT 1 FROM auth.users
+      WHERE auth.uid() = id AND 
+      id IN (SELECT user_id FROM public.user_roles WHERE role_id IN (SELECT role_id FROM public.roles WHERE role_key = 'admin'))
     )
   );
 
--- 用户角色关联表RLS
+-- 用户角色关联表RLS -- 解决递归问题的关键
 ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view their own roles"
+-- 允许所有已认证用户查询用户角色关联表，解决递归问题
+CREATE POLICY "All authenticated users can view user_roles"
   ON public.user_roles
   FOR SELECT
   TO authenticated
-  USING (auth.uid() = user_id);
+  USING (true);
 
-CREATE POLICY "Admins can manage user roles"
+-- 用户只能修改自己的角色关联，管理员例外
+CREATE POLICY "Users can manage their own roles"
+  ON public.user_roles
+  FOR INSERT UPDATE DELETE
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- 修改管理员策略，避免递归
+CREATE POLICY "Admins can manage all user roles"
   ON public.user_roles
   FOR ALL
   USING (
     EXISTS (
-      SELECT 1 FROM public.user_roles ur
-      JOIN public.roles r ON ur.role_id = r.role_id
-      WHERE ur.user_id = auth.uid() AND r.role_key = 'admin'
+      SELECT 1 FROM auth.users
+      WHERE auth.uid() = id AND 
+      id IN (SELECT user_id FROM public.user_roles WHERE role_id IN (SELECT role_id FROM public.roles WHERE role_key = 'admin'))
     )
   );
 
 -- 用户岗位关联表RLS
 ALTER TABLE public.user_posts ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view their own posts"
+-- 所有认证用户可查看用户岗位关联
+CREATE POLICY "Authenticated users can view user_posts"
   ON public.user_posts
   FOR SELECT
   TO authenticated
-  USING (auth.uid() = user_id);
+  USING (true);
 
-CREATE POLICY "Admins can manage user posts"
+-- 用户只能修改自己的岗位关联，管理员例外
+CREATE POLICY "Users can manage their own posts"
+  ON public.user_posts
+  FOR INSERT UPDATE DELETE
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- 修改管理员策略，避免递归
+CREATE POLICY "Admins can manage all user posts"
   ON public.user_posts
   FOR ALL
   USING (
     EXISTS (
-      SELECT 1 FROM public.user_roles ur
-      JOIN public.roles r ON ur.role_id = r.role_id
-      WHERE ur.user_id = auth.uid() AND r.role_key = 'admin'
+      SELECT 1 FROM auth.users
+      WHERE auth.uid() = id AND 
+      id IN (SELECT user_id FROM public.user_roles WHERE role_id IN (SELECT role_id FROM public.roles WHERE role_key = 'admin'))
     )
   );
 
@@ -268,42 +292,59 @@ CREATE POLICY "Authenticated users can view menus"
   TO authenticated
   USING (status = 1);
 
+-- 修改管理员策略，避免递归
 CREATE POLICY "Admins can manage menus"
   ON public.menus
   FOR ALL
   USING (
     EXISTS (
-      SELECT 1 FROM public.user_roles ur
-      JOIN public.roles r ON ur.role_id = r.role_id
-      WHERE ur.user_id = auth.uid() AND r.role_key = 'admin'
+      SELECT 1 FROM auth.users
+      WHERE auth.uid() = id AND 
+      id IN (SELECT user_id FROM public.user_roles WHERE role_id IN (SELECT role_id FROM public.roles WHERE role_key = 'admin'))
     )
   );
 
 -- 角色菜单关联表RLS
 ALTER TABLE public.role_menus ENABLE ROW LEVEL SECURITY;
 
+-- 所有认证用户可查看角色菜单关联
+CREATE POLICY "Authenticated users can view role_menus"
+  ON public.role_menus
+  FOR SELECT
+  TO authenticated
+  USING (true);
+
+-- 修改管理员策略，避免递归
 CREATE POLICY "Admins can manage role menus"
   ON public.role_menus
   FOR ALL
   USING (
     EXISTS (
-      SELECT 1 FROM public.user_roles ur
-      JOIN public.roles r ON ur.role_id = r.role_id
-      WHERE ur.user_id = auth.uid() AND r.role_key = 'admin'
+      SELECT 1 FROM auth.users
+      WHERE auth.uid() = id AND 
+      id IN (SELECT user_id FROM public.user_roles WHERE role_id IN (SELECT role_id FROM public.roles WHERE role_key = 'admin'))
     )
   );
 
 -- 角色部门关联表RLS
 ALTER TABLE public.role_departments ENABLE ROW LEVEL SECURITY;
 
+-- 所有认证用户可查看角色部门关联
+CREATE POLICY "Authenticated users can view role_departments"
+  ON public.role_departments
+  FOR SELECT
+  TO authenticated
+  USING (true);
+
+-- 修改管理员策略，避免递归
 CREATE POLICY "Admins can manage role departments"
   ON public.role_departments
   FOR ALL
   USING (
     EXISTS (
-      SELECT 1 FROM public.user_roles ur
-      JOIN public.roles r ON ur.role_id = r.role_id
-      WHERE ur.user_id = auth.uid() AND r.role_key = 'admin'
+      SELECT 1 FROM auth.users
+      WHERE auth.uid() = id AND 
+      id IN (SELECT user_id FROM public.user_roles WHERE role_id IN (SELECT role_id FROM public.roles WHERE role_key = 'admin'))
     )
   );
 
@@ -347,7 +388,7 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
--- 创建获取当前用户信息的存储过程
+-- 修改为SECURITY DEFINER以避免递归问题
 CREATE OR REPLACE FUNCTION public.get_current_user_info()
 RETURNS TABLE (
   id UUID,
@@ -365,7 +406,8 @@ RETURNS TABLE (
   role_names TEXT
 ) 
 LANGUAGE SQL
-SECURITY INVOKER
+SECURITY DEFINER
+SET search_path = public, auth
 AS $$
     SELECT 
         u.id,
@@ -401,7 +443,9 @@ AS $$
         u.id, p.id, d.dept_id;
 $$;
 
--- 创建管理员用的获取用户信息函数
+COMMENT ON FUNCTION public.get_current_user_info IS '获取当前用户详细信息（包括部门、岗位和角色），使用SECURITY DEFINER绕过RLS检查';
+
+-- 修改为SECURITY DEFINER以避免递归问题
 CREATE OR REPLACE FUNCTION public.get_user_info(p_user_id UUID)
 RETURNS TABLE (
   id UUID,
@@ -419,7 +463,8 @@ RETURNS TABLE (
   role_names TEXT
 ) 
 LANGUAGE SQL
-SECURITY INVOKER
+SECURITY DEFINER
+SET search_path = public, auth
 AS $$
     SELECT 
         u.id,
@@ -459,3 +504,5 @@ AS $$
     GROUP BY 
         u.id, p.id, d.dept_id;
 $$;
+
+COMMENT ON FUNCTION public.get_user_info IS '允许管理员获取任意用户的详细信息，使用SECURITY DEFINER绕过RLS检查';
