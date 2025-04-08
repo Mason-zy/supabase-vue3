@@ -59,6 +59,7 @@
             <el-menu-item index="/system/departments">部门管理</el-menu-item>
             <el-menu-item index="/system/posts">岗位管理</el-menu-item>
             <el-menu-item index="/system/settings">系统设置</el-menu-item>
+            <el-menu-item index="/system/logs">系统日志</el-menu-item>
           </el-sub-menu>
         </el-menu>
       </div>
@@ -174,7 +175,8 @@ const routeNameMap: Record<string, string> = {
   'UserProfile': '个人信息',
   'ChangePassword': '修改密码',
   'Departments': '部门管理',
-  'Posts': '岗位管理'
+  'Posts': '岗位管理',
+  'SystemLogs': '系统日志'
 }
 
 // 路由父级名称映射
@@ -183,7 +185,8 @@ const routeParentMap: Record<string, string> = {
   'Roles': '系统管理',
   'Settings': '系统管理',
   'Departments': '系统管理',
-  'Posts': '系统管理'
+  'Posts': '系统管理',
+  'SystemLogs': '系统管理'
 }
 
 // @ts-ignore - currentRoute用于以后的扩展功能

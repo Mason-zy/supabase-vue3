@@ -133,6 +133,15 @@ const routes: RouteRecordRaw[] = [
           title: '系统设置',
           icon: 'cog'
         }
+      },
+      {
+        path: 'system/logs',
+        name: 'SystemLogs',
+        component: () => import('@/views/system/LogManage.vue'),
+        meta: {
+          title: '系统日志',
+          icon: 'clipboard-list'
+        }
       }
     ]
   },
