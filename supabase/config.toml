@@ -1,0 +1,55 @@
+
+[functions.logs-proxy]
+enabled = true
+verify_jwt = true
+import_map = "./functions/logs-proxy/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/logs-proxy/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/logs-proxy/*.html" ]
+
+[functions.test-logs]
+enabled = true
+verify_jwt = true
+import_map = "./functions/test-logs/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/test-logs/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/test-logs/*.html" ]
+
+[functions.get-logs]
+enabled = true
+verify_jwt = true
+import_map = "./functions/get-logs/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/get-logs/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/get-logs/*.html" ]
+
+[functions.system-logs]
+enabled = true
+verify_jwt = true
+import_map = "./functions/system-logs/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/system-logs/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/system-logs/*.html" ]
+
+[functions.apply-rls-policy]
+enabled = true
+verify_jwt = true
+import_map = "./functions/apply-rls-policy/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/apply-rls-policy/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/apply-rls-policy/*.html" ]

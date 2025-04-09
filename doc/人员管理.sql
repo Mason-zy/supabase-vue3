@@ -506,3 +506,35 @@ AS $$
 $$;
 
 COMMENT ON FUNCTION public.get_user_info IS '允许管理员获取任意用户的详细信息，使用SECURITY DEFINER绕过RLS检查';
+
+
+-- 1. 首先禁用user_roles表的行级安全策略以防止之前的无限递归
+ALTER TABLE public.user_roles DISABLE ROW LEVEL SECURITY;
+
+-- 2. 删除已有的可能导致循环依赖的策略
+DROP POLICY IF EXISTS "Users can view their own roles" ON public.user_roles;
+DROP POLICY IF EXISTS "Admins can manage user roles" ON public.user_roles;
+DROP POLICY IF EXISTS "admin_user_roles_policy" ON public.user_roles;
+DROP POLICY IF EXISTS "users_view_own_roles" ON public.user_roles;
+DROP POLICY IF EXISTS "admin_access_policy" ON public.user_roles;
+
+-- 3. 重新启用user_roles表的行级安全策略
+ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+
+-- 4. 创建允许所有已认证用户查看所有用户角色的策略
+CREATE POLICY "authenticated_users_can_view_all_user_roles" 
+ON public.user_roles
+FOR SELECT
+TO authenticated
+USING (true);
+
+-- 5. 创建允许所有已认证用户执行所有操作的策略（这使得所有人都可以访问）
+CREATE POLICY "authenticated_users_can_manage_all_user_roles" 
+ON public.user_roles
+FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
+-- 6. 确保departments表的RLS策略也不会引起问题
+ALTER TABLE public.departments DISABLE ROW LEVEL SECURITY;

@@ -30,10 +30,17 @@ export const useAuthStore = defineStore('auth', () => {
   const loading = ref(false)
   const error = ref<string | null>(null)
 
+  // 防止重复调用的标志
+  let isLoadingProfile = false
+
   /**
    * 获取当前用户个人信息
    */
   const fetchUserProfile = async () => {
+    // 防止并发调用
+    if (isLoadingProfile) return { success: false, error: '用户信息加载中' }
+    isLoadingProfile = true
+    
     try {
       // 获取当前用户的基本信息
       const { data: userData, error: userError } = await supabase.auth.getUser()
@@ -43,6 +50,15 @@ export const useAuthStore = defineStore('auth', () => {
       if (!userData?.user) {
         return { success: false, error: '未找到用户信息' }
       }
+      
+      // 打印基本用户信息
+      console.log('用户基本信息:', {
+        id: userData.user.id,
+        email: userData.user.email,
+        last_sign_in_at: userData.user.last_sign_in_at,
+        user_metadata: userData.user.user_metadata,
+        created_at: userData.user.created_at
+      })
       
       // 尝试通过RPC获取完整用户信息
       try {
@@ -54,6 +70,13 @@ export const useAuthStore = defineStore('auth', () => {
           const profileInfo = Array.isArray(profileData) ? profileData[0] : profileData
           userProfile.value = profileInfo as UserProfile
           userRoles.value = profileInfo.role_names ? profileInfo.role_names.split(', ') : []
+          
+          // 打印详细用户信息
+          console.log('用户详细信息:', {
+            ...profileInfo,
+            roles: userRoles.value
+          })
+          
           return { success: true, data: profileInfo }
         }
         
@@ -85,6 +108,8 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (err: any) {
       console.error('获取用户信息失败:', err)
       return { success: false, error: err.message || '获取用户信息失败' }
+    } finally {
+      isLoadingProfile = false
     }
   }
 
@@ -96,58 +121,22 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
     
     try {
-      // 获取当前会话
-      const session = await authService.getSession()
-      if (session) {
-        user.value = session.user
-        // 获取用户角色和个人信息
-        await fetchUserProfile()
-      } else {
-        user.value = null
+      // 获取当前会话 - 仅设置基本状态
+      const { data } = await supabase.auth.getSession()
+      // 设置会话状态，用户详情由onAuthStateChange处理
+      if (!data.session) {
         userProfile.value = null
         userRoles.value = []
       }
     } catch (err) {
       console.error('认证初始化失败:', err)
       error.value = '认证初始化失败'
-      user.value = null
-      userProfile.value = null
-      userRoles.value = []
     } finally {
       loading.value = false
     }
   }
 
-  /**
-   * 登录
-   */
-  const login = async (credentials: LoginCredentials) => {
-    loading.value = true
-    error.value = null
-    
-    try {
-      const { data, error: authError } = await authService.signIn(credentials)
-      
-      if (authError) {
-        throw authError
-      }
-      
-      user.value = data.user
-      // 登录成功后获取用户信息
-      await fetchUserProfile()
-      return { success: true }
-    } catch (err: any) {
-      console.error('登录失败:', err)
-      error.value = err.message || '登录失败'
-      return { success: false, error: error.value }
-    } finally {
-      loading.value = false
-    }
-  }
-
-  /**
-   * 注册
-   */
+  // 注册只需要设置用户会话状态，不主动获取详情
   const register = async (data: RegisterData) => {
     loading.value = true
     error.value = null
@@ -159,13 +148,32 @@ export const useAuthStore = defineStore('auth', () => {
         throw authError
       }
       
-      user.value = authData.user
-      // 注册成功后获取用户信息
-      await fetchUserProfile()
       return { success: true }
     } catch (err: any) {
       console.error('注册失败:', err)
       error.value = err.message || '注册失败'
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // 登录只需要设置用户会话状态，不主动获取详情
+  const login = async (credentials: LoginCredentials) => {
+    loading.value = true
+    error.value = null
+    
+    try {
+      const { data, error: authError } = await authService.signIn(credentials)
+      
+      if (authError) {
+        throw authError
+      }
+      
+      return { success: true }
+    } catch (err: any) {
+      console.error('登录失败:', err)
+      error.value = err.message || '登录失败'
       return { success: false, error: error.value }
     } finally {
       loading.value = false
@@ -231,14 +239,18 @@ export const useAuthStore = defineStore('auth', () => {
     return userRoles.value.some(role => role === 'admin')
   })
 
-  // 设置认证状态变化监听
+  // 设置认证状态变化监听 - 集中处理用户信息获取
   supabase.auth.onAuthStateChange((_event, session) => {
+    // 更新用户状态
     user.value = session ? session.user : null
+    
     if (!session) {
+      // 登出状态，清除用户信息
       userProfile.value = null
       userRoles.value = []
-    } else if (session && !userProfile.value) {
-      // 如果有会话但没有用户信息，则获取用户信息
+    } else if (session) {
+      // 有会话时，获取用户详细信息
+      // 这是唯一获取用户详情的地方
       fetchUserProfile()
     }
   })

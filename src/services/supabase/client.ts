@@ -11,7 +11,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
-    persistSession: true,
+    persistSession: false, // 设置为false，关闭会话持久化，用户关闭页面后需要重新登录
     detectSessionInUrl: true
   }
 });

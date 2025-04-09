@@ -4,151 +4,218 @@
       <template #header>
         <div class="card-header">
           <h2>系统日志</h2>
-          <div class="operation-group">
-            <el-select v-model="selectedTemplate" placeholder="选择日志类型" @change="handleTemplateChange">
-              <el-option
-                v-for="(template, key) in templates"
-                :key="key"
-                :label="template.title"
-                :value="key"
-              />
-            </el-select>
-            <el-button type="primary" @click="fetchLogs" :loading="loading">
-              <el-icon><Search /></el-icon> 查询
-            </el-button>
-          </div>
         </div>
       </template>
       
-      <el-tabs v-model="activeTab" class="tabs">
-        <el-tab-pane label="日志查询" name="query">
-          <el-form>
-            <el-form-item label="日志类型">
-              <el-select v-model="logQuery.logType" placeholder="请选择日志类型" style="width: 100%">
-                <el-option label="API请求日志" value="edge_logs" />
-                <el-option label="认证日志" value="auth_logs" />
-                <el-option label="数据库日志" value="postgres_logs" />
-                <el-option label="存储日志" value="storage_logs" />
-                <el-option label="实时日志" value="realtime_logs" />
-                <el-option label="函数日志" value="function_logs" />
-              </el-select>
-            </el-form-item>
-            <el-form-item label="结果限制">
-              <el-input-number v-model="logQuery.limit" :min="10" :max="1000" step-strictly />
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="fetchLogs" :loading="loading">查询</el-button>
-              <el-button @click="resetQuery">重置</el-button>
-            </el-form-item>
-          </el-form>
-          
-          <div v-if="error" class="error-message">
-            <el-alert
-              :title="error"
-              type="error"
-              show-icon
-              :closable="false"
-            />
-          </div>
-          
-          <div v-if="logResults.length > 0" class="log-results">
-            <div class="result-header">
-              <span>查询结果 ({{ logResults.length }} 条记录)</span>
-              <el-button size="small" @click="exportLogs">
-                <el-icon><Download /></el-icon> 导出CSV
-              </el-button>
-            </div>
-            
-            <el-table 
-              :data="logResults"
-              style="width: 100%"
-              stripe
-              border
-              height="500"
-              :max-height="600"
-              v-loading="loading"
-            >
-              <el-table-column
-                v-for="(column, index) in resultColumns"
-                :key="index"
-                :prop="column"
-                :label="formatColumnLabel(column)"
-                :min-width="column === 'event_message' ? 400 : 150"
-                show-overflow-tooltip
-              >
-                <template #default="scope">
-                  <div v-if="column === 'status_code' || column === 'res.status_code'">
-                    <el-tag 
-                      :type="getStatusType(scope.row[column])" 
-                      size="small"
-                    >
-                      {{ scope.row[column] }}
-                    </el-tag>
-                  </div>
-                  <div v-else-if="typeof scope.row[column] === 'object'">
-                    {{ JSON.stringify(scope.row[column]) }}
-                  </div>
-                  <div v-else>
-                    {{ scope.row[column] }}
-                  </div>
-                </template>
-              </el-table-column>
-            </el-table>
-          </div>
-          <el-empty v-else-if="!loading && !error" description="暂无日志数据" />
-        </el-tab-pane>
+      <el-form>
+        <el-form-item label="日期范围">
+          <el-date-picker
+            v-model="dateRange"
+            type="datetimerange"
+            range-separator="至"
+            start-placeholder="开始日期时间"
+            end-placeholder="结束日期时间"
+            :shortcuts="dateRangeShortcuts"
+            @change="handleDateChange"
+            style="width: 100%"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            format="YYYY-MM-DD HH:mm:ss"
+          />
+        </el-form-item>
+        <el-form-item label="结果限制">
+          <el-input-number v-model="logQuery.limit" :min="10" :max="100" step-strictly />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="fetchLogs" :loading="loading">
+            <el-icon><Search /></el-icon> 查询
+          </el-button>
+          <el-button @click="resetQuery">重置</el-button>
+        </el-form-item>
+      </el-form>
+      
+      <div v-if="error" class="error-message">
+        <el-alert
+          :title="error"
+          type="error"
+          show-icon
+          :closable="false"
+        />
+      </div>
+      
+      <div v-if="logResults.length > 0" class="log-results">
+        <div class="result-header">
+          <span>查询结果 ({{ logResults.length }} 条记录)</span>
+          <el-button size="small" @click="exportLogs">
+            <el-icon><Download /></el-icon> 导出CSV
+          </el-button>
+        </div>
         
-        <el-tab-pane label="常用查询" name="templates">
-          <el-card v-for="(template, key) in templates" :key="key" class="template-card">
-            <template #header>
-              <div class="template-header">
-                <span>{{ template.title }}</span>
-                <el-button-group>
-                  <el-button size="small" @click="loadTemplate(String(key))">
-                    <el-icon><DocumentCopy /></el-icon> 使用
-                  </el-button>
-                </el-button-group>
-              </div>
+        <el-table 
+          :data="logResults"
+          style="width: 100%"
+          stripe
+          border
+          height="500"
+          :max-height="600"
+          v-loading="loading"
+        >
+          <el-table-column
+            prop="formatted_time"
+            label="时间"
+            min-width="170"
+          >
+            <template #default="scope">
+              {{ formatTimestamp(scope.row.formatted_time || scope.row.timestamp) }}
             </template>
-            <div class="template-content">
-              <p><strong>日志类型:</strong> {{ getLogTypeLabel(template.logType) }}</p>
-              <pre class="query-code">{{ template.query }}</pre>
-            </div>
-          </el-card>
-        </el-tab-pane>
-      </el-tabs>
+          </el-table-column>
+          
+          <el-table-column
+            prop="request_method"
+            label="请求方法"
+            min-width="80"
+          />
+          
+          <el-table-column
+            prop="request_path"
+            label="请求路径"
+            min-width="250"
+            show-overflow-tooltip
+          />
+          
+          <el-table-column
+            prop="response_status"
+            label="响应状态"
+            min-width="100"
+          >
+            <template #default="scope">
+              <el-tag 
+                :type="getStatusType(scope.row.response_status)" 
+                size="small"
+              >
+                {{ scope.row.response_status }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          
+          <el-table-column
+            prop="supabase_auth"
+            label="操作人ID"
+            min-width="250"
+            show-overflow-tooltip
+          >
+            <template #default="scope">
+              <span v-if="scope.row.supabase_auth && Array.isArray(scope.row.supabase_auth) && scope.row.supabase_auth.length > 0 && scope.row.supabase_auth[0].auth_user">
+                {{ scope.row.supabase_auth[0].auth_user }}
+              </span>
+              <span v-else>-</span>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+      <el-empty v-else-if="!loading && !error" description="暂无日志数据" />
     </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { logService } from '@/services/supabase/logs'
+import { ElMessage } from 'element-plus'
+import { getSystemLogs, LogType } from '@/services/system/logs'
 import { useAuthStore } from '@/stores/system/auth'
 import { 
-  Search, Refresh, Download, DocumentCopy
+  Search, Download
 } from '@element-plus/icons-vue'
+import { formatDateTime } from '@/utils/date'
+import { getStatusType, getStatusDescription } from '@/utils/status'
+import dayjs from 'dayjs'
 
 const authStore = useAuthStore()
 const isAdmin = computed(() => authStore.isAdmin)
 
 const loading = ref(false)
+const exporting = ref(false)
 const error = ref<string | null>(null)
 const logResults = ref<any[]>([])
-const activeTab = ref('query')
-const templates = ref(logService.getQueryTemplates())
-const selectedTemplate = ref('')
+
+// 日期范围
+const dateRange = ref<[Date, Date] | null>(null)
+const dateRangeShortcuts = [
+  {
+    text: '最近一分钟',
+    value: () => {
+      const end = new Date()
+      const start = new Date()
+      start.setTime(start.getTime() - 60 * 1000) // 一分钟
+      return [start, end]
+    },
+  },
+  {
+    text: '最近一小时',
+    value: () => {
+      const end = new Date()
+      const start = new Date()
+      start.setTime(start.getTime() - 3600 * 1000) // 一小时
+      return [start, end]
+    },
+  },
+  {
+    text: '最近一天',
+    value: () => {
+      const end = new Date()
+      const start = new Date()
+      start.setTime(start.getTime() - 3600 * 1000 * 24) // 一天
+      return [start, end]
+    },
+  },
+]
 
 // 查询参数
 const logQuery = ref({
-  logType: 'auth_logs',
-  query: '',
+  type: LogType.Edge,
+  iso_timestamp_start: undefined as string | undefined,
+  iso_timestamp_end: undefined as string | undefined,
   limit: 100
 })
 
-// 结果列
-const resultColumns = ref<string[]>([])
+// 结果列（用于CSV导出）
+const resultColumns = ref<string[]>(['formatted_time', 'request_method', 'request_path', 'response_status', 'supabase_auth'])
+
+// 设置默认时间范围为最近半小时
+const setDefaultTimeRange = () => {
+  const end = new Date()
+  const start = new Date()
+  start.setTime(start.getTime() - 30 * 60 * 1000) // 半小时 (30分钟)
+  
+  dateRange.value = [start, end]
+  logQuery.value.iso_timestamp_start = dayjs(start).format('YYYY-MM-DD HH:mm:ss')
+  logQuery.value.iso_timestamp_end = dayjs(end).format('YYYY-MM-DD HH:mm:ss')
+}
+
+// 日期范围变更
+const handleDateChange = (value: [Date, Date] | null) => {
+  if (value) {
+    // 直接使用北京时间，让Edge Function处理时区转换
+    const formatToLocalString = (date: Date | string) => {
+      return typeof date === 'string' ? date : dayjs(date).format('YYYY-MM-DD HH:mm:ss')
+    }
+    
+    logQuery.value.iso_timestamp_start = formatToLocalString(value[0])
+    logQuery.value.iso_timestamp_end = formatToLocalString(value[1])
+  } else {
+    logQuery.value.iso_timestamp_start = undefined
+    logQuery.value.iso_timestamp_end = undefined
+  }
+}
+
+// 格式化时间戳
+const formatTimestamp = (timestamp: string) => {
+  if (!timestamp) return ''
+  try {
+    return formatDateTime(timestamp)
+  } catch (e) {
+    return timestamp
+  }
+}
 
 // 获取日志
 const fetchLogs = async () => {
@@ -156,22 +223,42 @@ const fetchLogs = async () => {
   error.value = null
   
   try {
-    const result = await logService.getLogs(logQuery.value)
+    const result = await getSystemLogs({
+      type: logQuery.value.type,
+      iso_timestamp_start: logQuery.value.iso_timestamp_start,
+      iso_timestamp_end: logQuery.value.iso_timestamp_end,
+      limit: logQuery.value.limit
+    })
     
-    if (Array.isArray(result) && result.length > 0) {
-      logResults.value = result
-      // 提取结果列
-      resultColumns.value = Object.keys(result[0])
+    if (result && result.success && Array.isArray(result.data)) {
+      logResults.value = result.data
+      
+      if (result.meta) {
+        // 格式化并显示查询元数据
+        const formattedMeta = {
+          查询类型: result.meta.query?.type || '边缘日志',
+          时间范围: {
+            开始: formatDateTime(result.meta.query?.timeRange?.startLocal),
+            结束: formatDateTime(result.meta.query?.timeRange?.endLocal),
+            持续时间: result.meta.query?.timeRange?.duration
+          },
+          结果数量: result.meta.count || 0,
+          查询时间: formatDateTime(result.meta.timestampLocal)
+        }
+        console.log('日志查询元数据:', formattedMeta)
+      }
     } else {
       logResults.value = []
-      resultColumns.value = []
-      ElMessage.info('未查询到日志记录')
+      if (result && result.error) {
+        throw new Error(result.error.message || '获取日志失败')
+      } else {
+        ElMessage.info('未查询到日志记录')
+      }
     }
   } catch (err: any) {
     console.error('获取日志失败:', err)
     error.value = err.message || '获取日志失败'
     logResults.value = []
-    resultColumns.value = []
   } finally {
     loading.value = false
   }
@@ -180,56 +267,14 @@ const fetchLogs = async () => {
 // 重置查询
 const resetQuery = () => {
   logQuery.value = {
-    logType: 'auth_logs',
-    query: '',
+    type: LogType.Edge,
+    iso_timestamp_start: undefined,
+    iso_timestamp_end: undefined,
     limit: 100
   }
-  selectedTemplate.value = ''
-}
-
-// 加载模板
-const loadTemplate = (key: string) => {
-  const template = templates.value[key as keyof typeof templates.value]
-  if (template) {
-    logQuery.value.logType = template.logType
-    logQuery.value.query = template.query || ''
-    activeTab.value = 'query'
-  }
-}
-
-// 模板变更处理
-const handleTemplateChange = (value: string) => {
-  if (value) {
-    loadTemplate(value)
-  }
-}
-
-// 格式化列标签
-const formatColumnLabel = (column: string) => {
-  return column.replace(/[._]/g, ' ').replace(/(^|\s)\S/g, s => s.toUpperCase())
-}
-
-// 获取日志类型标签
-const getLogTypeLabel = (type: string) => {
-  const map: Record<string, string> = {
-    'edge_logs': 'API请求日志',
-    'auth_logs': '认证日志',
-    'postgres_logs': '数据库日志',
-    'storage_logs': '存储日志',
-    'realtime_logs': '实时日志',
-    'function_logs': '函数日志'
-  }
-  return map[type] || type
-}
-
-// 获取状态码类型
-const getStatusType = (code: number | string) => {
-  if (!code) return ''
-  const statusCode = typeof code === 'string' ? parseInt(code) : code
-  if (statusCode < 300) return 'success'
-  if (statusCode < 400) return 'info'
-  if (statusCode < 500) return 'warning'
-  return 'danger'
+  dateRange.value = null
+  // 重置后设置默认时间范围
+  setDefaultTimeRange()
 }
 
 // 导出日志到CSV
@@ -239,36 +284,53 @@ const exportLogs = () => {
     return
   }
   
-  // 构建CSV内容
-  const headers = resultColumns.value.join(',')
-  const rows = logResults.value.map(row => {
-    return resultColumns.value.map(col => {
-      const value = row[col]
-      if (typeof value === 'object') {
-        return `"${JSON.stringify(value).replace(/"/g, '""')}"`
-      }
-      if (typeof value === 'string') {
-        return `"${value.replace(/"/g, '""')}"`
-      }
-      return value || ''
-    }).join(',')
-  }).join('\n')
+  exporting.value = true
   
-  const csvContent = `${headers}\n${rows}`
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  
-  link.setAttribute('href', url)
-  link.setAttribute('download', `logs_${new Date().toISOString().split('T')[0]}.csv`)
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
+  try {
+    // 获取标题行
+    const headers = resultColumns.value.join(',')
+    
+    // 转换数据
+    const rows = logResults.value.map(row => {
+      return resultColumns.value.map(col => {
+        const value = row[col]
+        if (typeof value === 'object') {
+          return `"${JSON.stringify(value).replace(/"/g, '""')}"`
+        }
+        if (typeof value === 'string') {
+          return `"${value.replace(/"/g, '""')}"`
+        }
+        return value
+      }).join(',')
+    }).join('\n')
+    
+    const csvContent = `${headers}\n${rows}`
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    
+    // 创建下载链接
+    const link = document.createElement('a')
+    const now = dayjs().format('YYYYMMDD_HHmmss')
+    link.setAttribute('href', URL.createObjectURL(blob))
+    link.setAttribute('download', `system_logs_${now}.csv`)
+    link.style.visibility = 'hidden'
+    
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    
+    ElMessage.success('日志导出成功')
+  } catch (err: any) {
+    ElMessage.error('导出失败: ' + (err.message || '未知错误'))
+  } finally {
+    exporting.value = false
+  }
 }
 
-// 页面加载时初始化
+// 初始加载
 onMounted(() => {
-  // 初始化页面，这里可以添加其他初始化操作
+  // 设置默认时间范围
+  setDefaultTimeRange()
+  fetchLogs()
 })
 </script>
 
@@ -283,13 +345,8 @@ onMounted(() => {
   align-items: center;
 }
 
-.operation-group {
-  display: flex;
-  gap: 10px;
-}
-
-.tabs {
-  margin-top: 20px;
+.error-message {
+  margin: 15px 0;
 }
 
 .log-results {
@@ -303,48 +360,5 @@ onMounted(() => {
   margin-bottom: 10px;
   padding-bottom: 10px;
   border-bottom: 1px solid #ebeef5;
-}
-
-.template-card {
-  margin-bottom: 20px;
-}
-
-.template-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.template-content {
-  font-size: 14px;
-}
-
-.query-code {
-  background-color: #f5f7fa;
-  padding: 10px;
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
-  white-space: pre-wrap;
-  word-break: break-all;
-  color: #606266;
-  font-size: 12px;
-  margin-top: 10px;
-}
-
-.tips {
-  margin-top: 8px;
-  color: #909399;
-  font-size: 12px;
-}
-
-.tips code {
-  background-color: #f5f7fa;
-  padding: 2px 5px;
-  border-radius: 3px;
-  font-family: 'Courier New', monospace;
-}
-
-.error-message {
-  margin: 20px 0;
 }
 </style> 
