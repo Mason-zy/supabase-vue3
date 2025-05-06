@@ -1,4 +1,4 @@
-# 京博石油化工有限公司绩效指标体系电子系统
+# 绩效指标体系电子系统
 
 基于Vue 3、TypeScript、Supabase、Pinia和Vite的安全指标管理系统。
 
